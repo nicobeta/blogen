@@ -20,24 +20,21 @@ class PostController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, Post $post)
     {
-        //
+        $data = $request->validate([
+            'title' => 'required|max:255',
+            'body' => 'required|email'
+        ]);
+        //$data['user_id'] = auth()->id();
+        $data['user_id'] = 1;
+
+        return new PostResource($post->create($data));
     }
 
     /**
@@ -52,17 +49,6 @@ class PostController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Post $post)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -71,7 +57,12 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        //
+        $data = $request->validate([
+            'title' => 'sometimes|max:255',
+            'body' => 'sometimes|email'
+        ]);
+
+        return new PostResource(tap($post)->update($data));
     }
 
     /**
@@ -82,6 +73,7 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        $post->delete();
+        return ['success' => true];
     }
 }
