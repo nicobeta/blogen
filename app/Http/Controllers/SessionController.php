@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InvalidCredentialsException;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -15,10 +16,13 @@ class SessionController extends Controller
      */
     public function store(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
 
         if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'invalid_credentials'], 401);
+            throw new InvalidCredentialsException;
         }
 
         return [
