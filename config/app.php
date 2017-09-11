@@ -168,6 +168,8 @@ return [
          * Package Service Providers...
          */
 
+        'Tymon\JWTAuth\Providers\JWTAuthServiceProvider',
+
         /*
          * Application Service Providers...
          */
@@ -225,6 +227,9 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
+
+        'JWTAuth' => 'Tymon\JWTAuth\Facades\JWTAuth',
+        'JWTFactory' => 'Tymon\JWTAuth\Facades\JWTFactory'
 
     ],
 
