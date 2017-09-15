@@ -26,4 +26,20 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    /**
+     * Get the user that owns the post.
+     */
+    public function posts()
+    {
+        return $this->hasMany('App\Post');
+    }
+
+    /**
+     * Check if the user owns the related model.
+     */
+    public function owns($model)
+    {
+        return $this->id === $model->user_id;
+    }
 }

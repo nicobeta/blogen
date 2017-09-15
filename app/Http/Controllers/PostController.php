@@ -2,13 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\Posts as PostsResource;
+use App\Exceptions\UserUnauthorizedException;
 use App\Http\Resources\Post as PostResource;
+use App\Http\Resources\Posts as PostsResource;
 use App\Post;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
+
+    /**
+     * Instantiate a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('api.auth')->except(['index', 'show']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -25,16 +37,16 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request, Post $post)
+    public function store(Request $request)
     {
         $data = $request->validate([
             'title' => 'required|max:255',
-            'body' => 'required|email'
+            'body' => 'required'
         ]);
-        //$data['user_id'] = auth()->id();
-        $data['user_id'] = 1;
 
-        return new PostResource($post->create($data));
+        $post = auth()->user()->posts()->create($data);
+
+        return new PostResource($post);
     }
 
     /**
@@ -45,7 +57,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        return new PostResource($post->find(1));
+        return new PostResource($post);
     }
 
     /**
@@ -57,6 +69,10 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        if (!auth()->user()->owns($post)) {
+            throw new UserUnauthorizedException;
+        }
+
         $data = $request->validate([
             'title' => 'sometimes|max:255',
             'body' => 'sometimes|email'
@@ -73,6 +89,10 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        if (!auth()->user()->owns($post)) {
+            throw new UserUnauthorizedException;
+        }
+
         $post->delete();
         return ['success' => true];
     }
