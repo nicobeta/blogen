@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\UserUnauthorizedException;
-use App\Http\Resources\Post as PostResource;
-use App\Http\Resources\Posts as PostsResource;
+use App\Comment;
 use App\Post;
 use Illuminate\Http\Request;
+use App\Http\Resources\Comment as CommentResource;
+use App\Http\Resources\Comments as CommentsResource;
 
-class PostController extends Controller
+class CommentController extends Controller
 {
-
     /**
      * Instantiate a new controller instance.
      *
@@ -28,7 +27,7 @@ class PostController extends Controller
      */
     public function index(Post $post)
     {
-        return new PostsResource($post->paginate(10));
+        return new CommentsResource($post->comments()->paginate(10));
     }
 
     /**
@@ -37,63 +36,62 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Post $post, Request $request)
     {
         $data = $request->validate([
-            'title' => 'required|max:255',
             'body' => 'required'
         ]);
+        $data['user_id'] = auth()->id();
 
-        $post = auth()->user()->posts()->create($data);
+        $comment = $post->comments()->create($data);
 
-        return new PostResource($post);
+        return new CommentResource($comment);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Post  $post
+     * @param  \App\Comment  $comment
      * @return \Illuminate\Http\Response
      */
-    public function show(Post $post)
+    public function show(Post $post, Comment $comment)
     {
-        return new PostResource($post);
+        return new CommentResource($comment);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Post  $post
+     * @param  \App\Comment  $comment
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Post $post)
+    public function update(Post $post, Comment $comment, Request $request)
     {
-        if (!auth()->user()->owns($post)) {
+        if (!auth()->user()->owns($comment)) {
             throw new UserUnauthorizedException;
         }
 
         $data = $request->validate([
-            'title' => 'sometimes|max:255',
             'body' => 'sometimes'
         ]);
 
-        return new PostResource(tap($post)->update($data));
+        return new CommentResource(tap($comment)->update($data));
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Post  $post
+     * @param  \App\Comment  $comment
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Post $post)
+    public function destroy(Post $post, Comment $comment)
     {
-        if (!auth()->user()->owns($post)) {
+        if (!auth()->user()->owns($comment)) {
             throw new UserUnauthorizedException;
         }
 
-        $post->delete();
+        $comment->delete();
         return ['success' => true];
     }
 }

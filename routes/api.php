@@ -6,4 +6,5 @@ Route::post('auth/signup', 'RegistrationController@store');
 Route::post('auth/login', 'SessionController@store');
 Route::get('auth/whoami', 'SessionController@show')->middleware('api.auth');
 
-Route::resource('posts', 'PostController');
+Route::resource('posts', 'PostController')->except(['create', 'edit']);
+Route::resource('posts/{post}/comments', 'CommentController')->except(['create', 'edit']);

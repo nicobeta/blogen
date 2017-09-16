@@ -30,4 +30,12 @@ class Post extends Base
     {
         return $this->belongsTo('App\User');
     }
+
+    /**
+     * The comments that belongs to the post.
+     */
+    public function comments()
+    {
+        return $this->hasMany('App\Comment');
+    }
 }
