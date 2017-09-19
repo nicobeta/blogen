@@ -4,11 +4,12 @@ namespace Tests\Feature;
 
 use App\Post;
 use App\User;
+use App\Comment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
-class PostsTest extends TestCase
+class CommentsTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -31,82 +32,79 @@ class PostsTest extends TestCase
         $this->user = json_decode($response->getContent())->data;
     }
 
-    private function createPost()
+    private function createComment()
     {
-        $post = factory(Post::class)->make();
+        $this->post = factory(Post::class)->create();
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->user->token
-        ])->json('POST', 'api/posts', [
-            'title' => $post->title,
-            'body' => $post->body
+        ])->json('POST', 'api/posts/' . $this->post->id . '/comments', [
+            'body' => 'This is my comment'
         ]);
 
-        $this->post = json_decode($response->getContent())->data;
+        $this->comment = json_decode($response->getContent())->data;
 
         return $response;
     }
 
-    public function test_a_registered_user_can_create_a_post()
+    public function test_a_registered_user_can_comment_a_post()
     {
-        $response = $this->createPost();
+        $response = $this->createComment();
 
         $response
             ->assertStatus(201)
             ->assertJson([
                 'data' => [
-                    'title' => $this->post->title,
-                    'body' => $this->post->body
+                    'body' => 'This is my comment',
+                    'post_id' => $this->post->id,
+                    'user_id' => $this->user->id
                 ],
                 'success' => true,
             ]);
     }
 
-    public function test_a_post_has_required_fields()
+    public function test_a_comment_has_required_fields()
     {
-        $post = factory(Post::class)->make();
+        $post = factory(Post::class)->create();
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->user->token
-        ])->json('POST', 'api/posts', [
-            'title' => $post->title
-        ]);
+        ])->json('POST', 'api/posts/' . $post->id . '/comments');
 
         $response
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
                 'code' => 'invalid_fields'
-            ])
-            ->assertJsonStructure([
-                'errors' => ['body']
             ]);
     }
 
-    public function test_a_post_can_be_read()
+    public function test_a_comment_can_be_read()
     {
-        $this->createPost();
+        $comment = factory(Comment::class)->create();
 
-        $response = $this->json('GET', 'api/posts/' . $this->post->id);
+        $response = $this->json('GET', 'api/posts/' . $comment->post_id . '/comments/' . $comment->id);
 
         $response
             ->assertStatus(200)
             ->assertJson([
                 'success' => true,
                 'data' => [
-                    'title' => $this->post->title
+                    'id' => $comment->id,
+                    'body' => $comment->body,
+                    'post_id' => $comment->post_id
                 ]
             ]);
     }
 
-    public function test_a_post_owner_can_edit_his_post()
+    public function test_a_comment_owner_can_edit_his_comment()
     {
-        $this->createPost();
+        $this->createComment();
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->user->token
-        ])->json('PUT', 'api/posts/' . $this->post->id, [
-            'title' => 'Updated title'
+        ])->json('PUT', 'api/posts/' . $this->post->id . '/comments/' . $this->comment->id, [
+            'body' => 'This is my updated comment'
         ]);
 
         $response
@@ -114,18 +112,18 @@ class PostsTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'data' => [
-                    'title' => 'Updated title'
+                    'body' => 'This is my updated comment'
                 ]
             ]);
     }
 
-    public function test_a_post_owner_can_delete_his_post()
+    public function test_a_comment_owner_can_delete_his_comment()
     {
-        $this->createPost();
+        $this->createComment();
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->user->token
-        ])->json('DELETE', 'api/posts/' . $this->post->id);
+        ])->json('DELETE', 'api/posts/' . $this->post->id . '/comments/' . $this->comment->id);
 
         $response
             ->assertStatus(200)
@@ -134,13 +132,12 @@ class PostsTest extends TestCase
             ]);
     }
 
-    public function test_a_guest_can_not_create_a_post()
+    public function test_a_guest_can_not_comment()
     {
-        $post = factory(Post::class)->make();
+        $post = factory(Post::class)->create();
 
-        $response = $this->json('POST', 'api/posts', [
-            'title' => $post->title,
-            'body' => $post->body
+        $response = $this->json('POST', 'api/posts/' . $post->id . '/comments', [
+            'body' => 'Some comment'
         ]);
 
         $response
@@ -150,31 +147,31 @@ class PostsTest extends TestCase
             ]);
     }
 
-    public function test_an_unexisting_post_can_not_be_reached()
+    public function test_an_unexisting_comment_can_not_be_reached()
     {
-        $response = $this->json('GET', 'api/posts/5');
+        $response = $this->json('GET', 'api/posts/99/comment/99');
 
         $response->assertStatus(404);
 
-        $response = $this->json('PUT', 'api/posts/5', [
+        $response = $this->json('PUT', 'api/posts/99/comment/99', [
             'title' => 'Guest updated title man'
         ]);
 
         $response->assertStatus(404);
 
-        $response = $this->json('DELETE', 'api/posts/5', [
+        $response = $this->json('DELETE', 'api/posts/99/comment/99', [
             'title' => 'Guest updated title man'
         ]);
 
         $response->assertStatus(404);
     }
 
-    public function test_a_guest_can_not_edit_a_post()
+    public function test_a_guest_can_not_edit_comments()
     {
-        $post = factory(Post::class)->create();
+        $comment = factory(Comment::class)->create();
 
-        $response = $this->json('PUT', 'api/posts/' . $post->id, [
-            'title' => 'Updated title'
+        $response = $this->json('PUT', 'api/posts/' . $comment->post_id . '/comments/' . $comment->id, [
+            'body' => 'Some comment'
         ]);
 
         $response
@@ -185,11 +182,11 @@ class PostsTest extends TestCase
             ]);
     }
 
-    public function test_a_guest_can_not_delete_a_post()
+    public function test_a_guest_can_not_delete_comments()
     {
-        $post = factory(Post::class)->create();
+        $comment = factory(Comment::class)->create();
 
-        $response = $this->json('DELETE', 'api/posts/' . $post->id);
+        $response = $this->json('DELETE', 'api/posts/' . $comment->post_id . '/comments/' . $comment->id);
 
         $response
             ->assertStatus(401)
@@ -199,13 +196,13 @@ class PostsTest extends TestCase
             ]);
     }
 
-    public function test_a_user_can_not_edit_a_post_he_does_not_own()
+    public function test_a_user_can_not_edit_a_comment_he_does_not_own()
     {
-        $post = factory(Post::class)->create();
+        $comment = factory(Comment::class)->create();
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->user->token
-        ])->json('PUT', 'api/posts/' . $post->id, [
+        ])->json('PUT', 'api/posts/' . $comment->post_id . '/comments/' . $comment->id, [
             'title' => 'Updated title'
         ]);
 
@@ -217,13 +214,13 @@ class PostsTest extends TestCase
             ]);
     }
 
-    public function test_a_user_can_not_delete_a_post_he_does_not_own()
+    public function test_a_user_can_not_delete_a_comment_he_does_not_own()
     {
-        $post = factory(Post::class)->create();
+        $comment = factory(Comment::class)->create();
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->user->token
-        ])->json('DELETE', 'api/posts/' . $post->id);
+        ])->json('DELETE', 'api/posts/' . $comment->post_id . '/comments/' . $comment->id);
 
         $response
             ->assertStatus(401)

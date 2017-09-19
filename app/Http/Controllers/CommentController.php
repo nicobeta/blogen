@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Comment;
-use App\Post;
-use Illuminate\Http\Request;
+use App\Exceptions\UserUnauthorizedException;
 use App\Http\Resources\Comment as CommentResource;
 use App\Http\Resources\Comments as CommentsResource;
+use App\Post;
+use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
