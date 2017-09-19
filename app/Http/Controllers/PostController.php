@@ -42,7 +42,8 @@ class PostController extends Controller
         $data = $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
-            'category_id' => 'sometimes|integer'
+            'category_id' => 'sometimes|integer',
+            'tags' => 'sometimes|string'
         ]);
 
         $post = auth()->user()->posts()->create($data);
