@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\User;
 
 class SessionTest extends TestCase
 {
@@ -17,9 +18,11 @@ class SessionTest extends TestCase
 
     private function prepareForTests()
     {
+        $user = factory(User::class)->make();
+
         $response = $this->json('POST', 'api/auth/signup', [
-            'name' => 'Test',
-            'email' => 'test@example.com',
+            'name' => $user->name,
+            'email' => $user->email,
             'password' => 'password'
         ]);
 
@@ -29,7 +32,7 @@ class SessionTest extends TestCase
     public function test_a_user_can_login()
     {
         $response = $this->json('POST', 'api/auth/login', [
-            'email' => 'test@example.com',
+            'email' => $this->user->email,
             'password' => 'password'
         ]);
 
@@ -37,8 +40,8 @@ class SessionTest extends TestCase
             ->assertStatus(200)
             ->assertJson([
                 'data' => [
-                    'name' => 'Test',
-                    'email' => 'test@example.com'
+                    'name' => $this->user->name,
+                    'email' => $this->user->email
                 ],
                 'success' => true,
             ])
@@ -55,8 +58,8 @@ class SessionTest extends TestCase
             ->assertStatus(200)
             ->assertJson([
                 'data' => [
-                    'name' => 'Test',
-                    'email' => 'test@example.com'
+                    'name' => $this->user->name,
+                    'email' => $this->user->email
                 ],
                 'success' => true,
             ]);
