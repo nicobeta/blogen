@@ -7,6 +7,7 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Illuminate\Database\QueryException;
 
 class Handler extends ExceptionHandler
 {
@@ -61,6 +62,12 @@ class Handler extends ExceptionHandler
             return response()->json([
                 'message' => $exception->getMessage(),
                 'code' => 'not_found',
+                'success' => false
+            ], 404);
+        } elseif ($exception instanceof QueryException) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+                'code' => 'database_error',
                 'success' => false
             ], 404);
         }

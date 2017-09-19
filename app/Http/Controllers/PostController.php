@@ -41,7 +41,8 @@ class PostController extends Controller
     {
         $data = $request->validate([
             'title' => 'required|max:255',
-            'body' => 'required'
+            'body' => 'required',
+            'category_id' => 'sometimes|integer'
         ]);
 
         $post = auth()->user()->posts()->create($data);
@@ -75,7 +76,8 @@ class PostController extends Controller
 
         $data = $request->validate([
             'title' => 'sometimes|max:255',
-            'body' => 'sometimes'
+            'body' => 'sometimes',
+            'category_id' => 'sometimes|integer'
         ]);
 
         return new PostResource(tap($post)->update($data));

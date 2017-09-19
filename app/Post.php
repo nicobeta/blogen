@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Post extends Base
 {
-    protected $fillable = ['title', 'body', 'user_id'];
+    protected $fillable = ['title', 'body', 'user_id', 'category_id'];
 
     /**
      * The attributes that should be cast to native types.
@@ -31,12 +31,13 @@ class Post extends Base
             'url' => str_slug($this->title, '-'),
             'body' => $this->body,
             'user_id' => $this->user_id,
+            'category_id' => $this->category_id,
             'created_at' => $this->created_at
         ];
     }
 
     /**
-     * The users that belong to the post.
+     * The users that the post belongs to.
      */
     public function user()
     {
@@ -44,10 +45,18 @@ class Post extends Base
     }
 
     /**
-     * The comments that belongs to the post.
+     * The comments that the post has.
      */
     public function comments()
     {
         return $this->hasMany('App\Comment');
+    }
+
+    /**
+     * The category of the post.
+     */
+    public function category()
+    {
+        return $this->hasOne('App\Category');
     }
 }

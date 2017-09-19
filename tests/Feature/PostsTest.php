@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Post;
 use App\User;
+use App\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
@@ -83,6 +84,31 @@ class PostsTest extends TestCase
             ]);
     }
 
+    public function test_a_post_can_have_a_category()
+    {
+        $post = factory(Post::class)->make();
+        $category = factory(Category::class)->create();
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $this->user->token
+        ])->json('POST', 'api/posts', [
+            'title' => $post->title,
+            'body' => $post->body,
+            'category_id' => $category->id
+        ]);
+
+        $response
+            ->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'title' => $post->title,
+                    'body' => $post->body,
+                    'category_id' => $category->id
+                ]
+            ]);
+    }
+
     public function test_a_post_can_be_read()
     {
         $this->createPost();
@@ -156,15 +182,11 @@ class PostsTest extends TestCase
 
         $response->assertStatus(404);
 
-        $response = $this->json('PUT', 'api/posts/5', [
-            'title' => 'Guest updated title man'
-        ]);
+        $response = $this->json('PUT', 'api/posts/5');
 
         $response->assertStatus(404);
 
-        $response = $this->json('DELETE', 'api/posts/5', [
-            'title' => 'Guest updated title man'
-        ]);
+        $response = $this->json('DELETE', 'api/posts/5');
 
         $response->assertStatus(404);
     }

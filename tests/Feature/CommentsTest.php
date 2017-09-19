@@ -153,15 +153,11 @@ class CommentsTest extends TestCase
 
         $response->assertStatus(404);
 
-        $response = $this->json('PUT', 'api/posts/99/comment/99', [
-            'title' => 'Guest updated title man'
-        ]);
+        $response = $this->json('PUT', 'api/posts/99/comment/99');
 
         $response->assertStatus(404);
 
-        $response = $this->json('DELETE', 'api/posts/99/comment/99', [
-            'title' => 'Guest updated title man'
-        ]);
+        $response = $this->json('DELETE', 'api/posts/99/comment/99');
 
         $response->assertStatus(404);
     }
