@@ -9,6 +9,16 @@ class Post extends Base
     protected $fillable = ['title', 'body', 'user_id'];
 
     /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'id' => 'integer',
+        'user_id' => 'integer'
+    ];
+
+    /**
      * Convert the model instance to an array.
      *
      * @return array
@@ -16,9 +26,11 @@ class Post extends Base
     public function toArray()
     {
         return [
+            'id' => $this->id,
             'title' => $this->title,
             'url' => str_slug($this->title, '-'),
             'body' => $this->body,
+            'user_id' => $this->user_id,
             'created_at' => $this->created_at
         ];
     }
