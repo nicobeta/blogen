@@ -7,6 +7,7 @@ use App\Http\Resources\Post as PostResource;
 use App\Http\Resources\Posts as PostsResource;
 use App\Post;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 class PostController extends Controller
 {
@@ -43,8 +44,13 @@ class PostController extends Controller
             'title' => 'required|max:255',
             'body' => 'required',
             'category_id' => 'sometimes|integer',
-            'tags' => 'sometimes|string'
+            'tags' => 'sometimes|string',
+            'image' => 'sometimes|image|mimes:jpeg,jpg,png'
         ]);
+
+        if (isset($data['image'])) {
+            $data['image'] = $this->saveImageFile($data['image']);
+        }
 
         $post = auth()->user()->posts()->create($data);
 
@@ -71,6 +77,7 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        dd($request);
         if (!auth()->user()->owns($post)) {
             throw new UserUnauthorizedException;
         }
@@ -78,8 +85,13 @@ class PostController extends Controller
         $data = $request->validate([
             'title' => 'sometimes|max:255',
             'body' => 'sometimes',
-            'category_id' => 'sometimes|integer'
+            'category_id' => 'sometimes|integer',
+            'tags' => 'sometimes|string',
+            'image' => 'sometimes|image|mimes:jpeg,jpg,png'
         ]);
+        if (isset($data['image'])) {
+            $data['image'] = $this->saveImageFile($data['image']);
+        }
 
         return new PostResource(tap($post)->update($data));
     }
@@ -98,5 +110,16 @@ class PostController extends Controller
 
         $post->delete();
         return ['success' => true];
+    }
+
+    /**
+     * Saves the uploaded image file.
+     *
+     * @param Illuminate\Http\UploadedFile $image
+     * @return array
+     */
+    private function saveImageFile(UploadedFile $image)
+    {
+        return $image->storeAs('images', $image->getClientOriginalName(), 'public');
     }
 }

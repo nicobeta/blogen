@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Post extends Base
 {
-    protected $fillable = ['title', 'body', 'user_id', 'category_id', 'tags'];
+    protected $fillable = ['title', 'body', 'user_id', 'category_id', 'tags', 'image'];
 
     /**
      * The attributes that should be cast to native types.
@@ -33,6 +33,7 @@ class Post extends Base
             'user_id' => $this->user_id,
             'category_id' => $this->category_id,
             'tags' => $this->tags,
+            'image' => $this->image,
             'created_at' => $this->created_at
         ];
     }
